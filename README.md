@@ -1,7 +1,7 @@
 # easyexcel-util
 本项目基于阿里easyexcel，使其更容易处理每个cell的字体与样式  
 
-# 自定义注解 xcelValueFormat  
+# 自定义注解 ExcelValueFormat  
 通过该注解更加方便的处理每个数据的具体格式  
 ```
 public class UserData extends BaseRowModel implements Serializable {
@@ -19,7 +19,7 @@ public class UserData extends BaseRowModel implements Serializable {
 }
 ```
 
-# 通过实现 xcelDataHandler 接口来设置具体每个cell的样式与字体，如：
+# 通过实现 ExcelDataHandler 接口来设置具体每个cell的样式与字体，如：
 ```
 public class UserDataHandler implements ExcelDataHandler {
 
