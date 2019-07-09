@@ -34,9 +34,8 @@ public class UserDataHandler implements ExcelDataHandler {
     public void contentFont(Font font, int cellIndex, Object data) {
         UserData user = (UserData) data;
         switch (cellIndex) {
-
-            case 2:
-                if (Integer.valueOf(user.getAge()) > 60) {
+            case 2: //这里的值为Model对象中ExcelProperty注解里的index值
+                if (Integer.valueOf(user.getAge()) > 60) { //表示将年龄大于60的第二列也就是工资列的cell字体标记为红色
                     font.setColor(IndexedColors.RED.getIndex());
                     font.setFontName("宋体");
                     font.setItalic(true);
