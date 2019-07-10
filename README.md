@@ -2,7 +2,7 @@
 本项目基于阿里easyexcel，使其更容易处理每个cell的字体与样式  
 
 # 自定义注解 ExcelValueFormat  
-通过该注解更加方便的处理每个数据的具体格式  
+通过该注解更加方便的处理每个数据的具体格式, 内部采用MessageFormat.format进行数据格式化
 ```
 public class UserData extends BaseRowModel implements Serializable {
 
@@ -98,4 +98,7 @@ public class UserDataHandler implements ExcelDataHandler {
     public void sheet(int sheetIndex, Sheet sheet) {}
 }
 ```
+![文档输出](https://github.com/AIFEINIK/img-resource/blob/master/easyexcel-util/0010.png)
 
+# 测试代码
+test/ExcelTest.java
