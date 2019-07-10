@@ -1,4 +1,4 @@
-package com.feinik.excel.test;
+package com.feinik.excel.test.model;
 
 import com.alibaba.excel.annotation.ExcelProperty;
 import com.alibaba.excel.metadata.BaseRowModel;

@@ -22,6 +22,7 @@ import java.io.OutputStream;
 import java.lang.reflect.Field;
 import java.text.MessageFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -152,7 +153,14 @@ public class ExcelUtil {
         List<T> result = new ArrayList<>();
         for (Object o : data) {
             final Object copyObj = BeanUtils.transform(o.getClass(), o);
-            final Field[] fields = copyObj.getClass().getDeclaredFields();
+
+            List<Field> fields = new ArrayList<>() ;
+            Class<?> copyObjClass = copyObj.getClass();
+            while (copyObjClass != null) {
+                fields.addAll(Arrays.asList(copyObjClass.getDeclaredFields()));
+                copyObjClass = copyObjClass.getSuperclass();
+            }
+
             for (Field field : fields) {
                 field.setAccessible(true);
                 final ExcelValueFormat valueFormat = field.getDeclaredAnnotation(ExcelValueFormat.class);

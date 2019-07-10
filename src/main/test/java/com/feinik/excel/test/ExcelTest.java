@@ -2,7 +2,9 @@ package com.feinik.excel.test;
 
 import com.alibaba.excel.metadata.BaseRowModel;
 import com.alibaba.excel.metadata.Sheet;
+import com.feinik.excel.test.handler.UserDataHandler;
 import com.feinik.excel.test.listener.ExcelListener;
+import com.feinik.excel.test.model.UserData;
 import com.feinik.excel.test.util.FileUtil;
 import com.feinik.excel.utils.ExcelUtil;
 import org.junit.Test;
@@ -34,6 +36,7 @@ public class ExcelTest {
 
         List<UserData> data = new ArrayList<>();
         data.add(userData);
+        data.add(userData2);
 
         List<UserData> data2 = new ArrayList<>();
         data2.add(userData2);
@@ -44,15 +47,15 @@ public class ExcelTest {
 
         try {
             //将数据写入单个sheet
-            ExcelUtil.writeExcelWithOneSheet(new File("G:/tmp/test.xlsx"),
-                    "用户信息",
-                    data);
-
-            //将数据写入单个sheet, 并通过实现ExcelDataHandler接口来指定具体excell的样式
             //ExcelUtil.writeExcelWithOneSheet(new File("G:/tmp/test.xlsx"),
             //        "用户信息",
-            //        data,
-            //        new com.feinik.excel.test.UserDataHandler());
+            //        data);
+
+            //将数据写入单个sheet, 并通过实现ExcelDataHandler接口来指定具体excell的样式
+            ExcelUtil.writeExcelWithOneSheet(new File("G:/tmp/test.xlsx"),
+                    "用户信息",
+                    data,
+                    new UserDataHandler());
 
             //将数据写入多个sheet
             //ExcelUtil.writeExcelWithMultiSheet(new File("G:/tmp/test.xlsx"),
