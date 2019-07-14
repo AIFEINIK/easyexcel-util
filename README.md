@@ -14,17 +14,28 @@
 # 自定义注解 ExcelValueFormat  
 通过该注解更加方便的处理每个数据的具体格式, 内部采用MessageFormat.format进行数据格式化
 ```
-public class UserData extends BaseRowModel implements Serializable {
+@Data
+public class CampaignModel extends BaseRowModel implements Serializable {
 
-    @ExcelProperty(value = "用户名", index = 0)
-    private String userName;
+    @ExcelProperty(value = "日期", index = 0)
+    private String day;
 
-    @ExcelProperty(value = "年龄", index = 1)
-    private Integer age;
+    @ExcelProperty(value = "广告系列 ID", index = 1)
+    private String campaignId;
 
-    @ExcelProperty(value = "工资", index = 2)
-    @ExcelValueFormat(format = "{0}￥")
-    private String salary;
+    @ExcelProperty(value = "广告系列", index = 2)
+    private String campaignName;
+
+    @ExcelProperty(value = "费用", index = 3)
+    @ExcelValueFormat(format = "{0}$")
+    private String cost;
+
+    @ExcelProperty(value = "点击次数", index = 4)
+    private String clicks;
+
+    @ExcelProperty(value = "点击率", index = 5)
+    @ExcelValueFormat(format = "{0}%")
+    private String ctr;
 
 }
 ```
@@ -69,7 +80,7 @@ public interface ExcelDataHandler {
     void sheet(int sheetIndex, Sheet sheet);
 }
 
-public class UserDataHandler implements ExcelDataHandler {
+public class CampaignDataHandler implements ExcelDataHandler {
 
     @Override
     public void headCellStyle(CellStyle style, int cellIndex) {
@@ -90,10 +101,10 @@ public class UserDataHandler implements ExcelDataHandler {
 
     @Override
     public void contentFont(Font font, int cellIndex, Object data) {
-        UserData user = (UserData) data;
+        CampaignModel campaign = (CampaignModel) data;
         switch (cellIndex) {
-            case 2: //这里的值与Model对象中 @ExcelProperty(value = "用户名", index = 0)注解里的index值
-                if (Integer.valueOf(user.getAge()) > 60) {
+            case 4: //这里的值为Model对象中ExcelProperty注解里的index值
+                if (Long.valueOf(campaign.getClicks()) > 100) { //表示将点击次数大于100的第4列也就是点击次数列的cell字体标记为红色
                     font.setColor(IndexedColors.RED.getIndex());
                     font.setFontName("宋体");
                     font.setItalic(true);
@@ -105,10 +116,71 @@ public class UserDataHandler implements ExcelDataHandler {
     }
 
     @Override
-    public void sheet(int sheetIndex, Sheet sheet) {}
+    public void sheet(int sheetIndex, Sheet sheet) {
+        System.out.println("sheetIndex = [" + sheetIndex + "]");
+    }
 }
 ```
-![文档输出](https://github.com/AIFEINIK/img-resource/blob/master/easyexcel-util/0010.png)
+# Excel数据写入
+## 小数据量一次性写入单个sheet，使用默认样式
+```
+public class ExcelTest {
+
+    CampaignModel m1 = new CampaignModel("2019-01-01", "10000000", "campaign1", "12.21", "100", "0.11");
+    CampaignModel m2 = new CampaignModel("2019-01-02", "12000010", "campaign2", "13", "99", "0.91");
+    CampaignModel m3 = new CampaignModel("2019-01-03", "12001010", "campaign3", "10", "210", "1.13");
+    CampaignModel m4 = new CampaignModel("2019-01-04", "15005010", "campaign4", "21.9", "150", "0.15");
+
+    ArrayList<CampaignModel> data1 = Lists.newArrayList(m1, m2);
+    ArrayList<CampaignModel> data2 = Lists.newArrayList(m3, m4);
+
+    @Test
+    public void writeExcelWithOneSheet() throws Exception {
+        ExcelUtil.writeExcelWithOneSheet(new File("G:/tmp/campaign.xlsx"),
+                "campaign",
+                data1);
+    }
+}
+```
+![s1](https://github.com/AIFEINIK/img-resource/blob/master/easyexcel-util/0011.png)
+
+## 小数据量一次性写入单个sheet，使用自定义样式
+```
+    @Test
+    public void writeExcelWithOneSheet2() throws Exception {
+        ExcelUtil.writeExcelWithOneSheet(new File("G:/tmp/campaign.xlsx"),
+                "campaign",
+                data1,
+                new CampaignDataHandler());
+    }
+```
+![s2](https://github.com/AIFEINIK/img-resource/blob/master/easyexcel-util/0012.png)
+
+## 小数据量一次性写入多个sheet，默认样式
+```
+    @Test
+    public void writeExcelWithMultiSheet() throws Exception {
+        Map<String, List<? extends BaseRowModel>> map = new HashMap<>();
+        map.put("sheet1", data1);
+        map.put("sheet2", data2);
+
+        ExcelUtil.writeExcelWithMultiSheet(new File("G:/tmp/campaign.xlsx"), map);
+    }
+```
+![s3](https://github.com/AIFEINIK/img-resource/blob/master/easyexcel-util/0013.png)
+
+## 小数据量一次性写入多个sheet，使用自定义样式
+```
+    @Test
+    public void writeExcelWithMultiSheet2() throws Exception {
+        Map<String, List<? extends BaseRowModel>> map = new HashMap<>();
+        map.put("sheet1", data1);
+        map.put("sheet2", data2);
+
+        ExcelUtil.writeExcelWithMultiSheet(new File("G:/tmp/campaign.xlsx"), map, new CampaignDataHandler());
+    }
+```
+![s3](https://github.com/AIFEINIK/img-resource/blob/master/easyexcel-util/0014.png)
 
 # 测试代码
 [ExcelTest](https://github.com/AIFEINIK/easyexcel-util/blob/master/src/main/test/java/com/feinik/excel/test/ExcelTest.java)
