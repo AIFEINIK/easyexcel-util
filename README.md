@@ -1,6 +1,9 @@
 # easyexcel-util
 本项目基于阿里easyexcel，在此基础上做了更进一步的封装，使其写入数据更加便捷，通过抽离出的ExcelDataHandler接口更容易处理每个cell的字体与样式  
 
+# 相关文档
+* [update](https://github.com/AIFEINIK/easyexcel-util/blob/master/update.md)
+
 # Maven包引入
 ```
 <dependency>
