@@ -12,11 +12,10 @@ import java.util.List;
  */
 public class ExcelListener extends AnalysisEventListener {
 
-    private List<Object> data = new ArrayList<Object>();
+    private List<Object> data = new ArrayList<>();
 
     @Override
     public void invoke(Object object, AnalysisContext context) {
-        System.out.println(context.getCurrentSheet());
         data.add(object);
         if (data.size() >= 100) {
             doSomething();

@@ -2,11 +2,12 @@ package com.feinik.excel.test;
 
 import com.alibaba.excel.metadata.BaseRowModel;
 import com.alibaba.excel.metadata.Sheet;
-import com.feinik.excel.test.handler.UserDataHandler;
+import com.feinik.excel.test.handler.CampaignDataHandler;
 import com.feinik.excel.test.listener.ExcelListener;
-import com.feinik.excel.test.model.UserData;
+import com.feinik.excel.test.model.CampaignModel;
 import com.feinik.excel.test.util.FileUtil;
 import com.feinik.excel.utils.ExcelUtil;
+import com.google.common.collect.Lists;
 import org.junit.Test;
 
 import java.io.File;
@@ -22,57 +23,66 @@ import java.util.Map;
  */
 public class ExcelTest {
 
+    CampaignModel m1 = new CampaignModel("2019-01-01", "10000000", "campaign1", "12.21", "100", "0.11");
+    CampaignModel m2 = new CampaignModel("2019-01-02", "12000010", "campaign2", "13", "99", "0.91");
+    CampaignModel m3 = new CampaignModel("2019-01-03", "12001010", "campaign3", "10", "210", "1.13");
+    CampaignModel m4 = new CampaignModel("2019-01-04", "15005010", "campaign4", "21.9", "150", "0.15");
+
+    ArrayList<CampaignModel> data1 = Lists.newArrayList(m1, m2);
+    ArrayList<CampaignModel> data2 = Lists.newArrayList(m3, m4);
+
+    /**
+     * 小数据量一次性写入单个sheet，使用默认样式
+     * @throws Exception
+     */
     @Test
-    public void writeTest() {
-        UserData userData = new UserData();
-        userData.setUserName("张三");
-        userData.setAge(62);
-        userData.setSalary("5000");
+    public void writeExcelWithOneSheet() throws Exception {
+        ExcelUtil.writeExcelWithOneSheet(new File("G:/tmp/campaign.xlsx"),
+                "campaign",
+                data1);
+    }
 
-        UserData userData2 = new UserData();
-        userData2.setUserName("李四");
-        userData2.setAge(55);
-        userData2.setSalary("7000");
+    /**
+     * 小数据量一次性写入单个sheet，使用自定义样式
+     * @throws Exception
+     */
+    @Test
+    public void writeExcelWithOneSheet2() throws Exception {
+        ExcelUtil.writeExcelWithOneSheet(new File("G:/tmp/campaign.xlsx"),
+                "campaign",
+                data1,
+                new CampaignDataHandler());
+    }
 
-        List<UserData> data = new ArrayList<>();
-        data.add(userData);
-        data.add(userData2);
-
-        List<UserData> data2 = new ArrayList<>();
-        data2.add(userData2);
-
+    /**
+     * 小数据量一次性写入多个sheet，默认样式
+     * @throws Exception
+     */
+    @Test
+    public void writeExcelWithMultiSheet() throws Exception {
         Map<String, List<? extends BaseRowModel>> map = new HashMap<>();
-        map.put("sheet1", data);
+        map.put("sheet1", data1);
         map.put("sheet2", data2);
 
-        try {
-            //将数据写入单个sheet
-            //ExcelUtil.writeExcelWithOneSheet(new File("G:/tmp/test.xlsx"),
-            //        "用户信息",
-            //        data);
+        ExcelUtil.writeExcelWithMultiSheet(new File("G:/tmp/campaign.xlsx"), map);
+    }
 
-            //将数据写入单个sheet, 并通过实现ExcelDataHandler接口来指定具体excell的样式
-            ExcelUtil.writeExcelWithOneSheet(new File("G:/tmp/test.xlsx"),
-                    "用户信息",
-                    data,
-                    new UserDataHandler());
+    /**
+     * 小数据量一次性写入多个sheet，使用自定义样式
+     * @throws Exception
+     */
+    @Test
+    public void writeExcelWithMultiSheet2() throws Exception {
+        Map<String, List<? extends BaseRowModel>> map = new HashMap<>();
+        map.put("sheet1", data1);
+        map.put("sheet2", data2);
 
-            //将数据写入多个sheet
-            //ExcelUtil.writeExcelWithMultiSheet(new File("G:/tmp/test.xlsx"),
-            //        map);
-
-            //将数据写入多个sheet, 并通过实现ExcelDataHandler接口来指定具体excell的样式
-            //ExcelUtil.writeExcelWithMultiSheet(new File("G:/tmp/test.xlsx"),
-            //        map,
-            //        new UserDataHandler());
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        ExcelUtil.writeExcelWithMultiSheet(new File("G:/tmp/campaign.xlsx"), map, new CampaignDataHandler());
     }
 
     @Test
     public void readSmallFilesTest() {
-        try (InputStream in = FileUtil.getResourcesFileInputStream("test1.xlsx")) {
+        try (InputStream in = FileUtil.getResourcesFileInputStream("campaign.xlsx")) {
             final List<Object> data = ExcelUtil.read(in, new Sheet(1, 1));
             print(data);
         } catch (Exception e) {
@@ -82,8 +92,8 @@ public class ExcelTest {
 
     @Test
     public void readSmallFilesCastModelTest() {
-        try (InputStream in = FileUtil.getResourcesFileInputStream("test1.xlsx")) {
-            final List<Object> data = ExcelUtil.read(in, new Sheet(1, 1, UserData.class));
+        try (InputStream in = FileUtil.getResourcesFileInputStream("campaign.xlsx")) {
+            final List<Object> data = ExcelUtil.read(in, new Sheet(1, 1, CampaignModel.class));
             print(data);
         } catch (Exception e) {
             e.printStackTrace();
@@ -92,7 +102,7 @@ public class ExcelTest {
 
     @Test
     public void readLargeFilesTest() {
-        try (InputStream in = FileUtil.getResourcesFileInputStream("test1.xlsx")) {
+        try (InputStream in = FileUtil.getResourcesFileInputStream("campaign.xlsx")) {
             ExcelListener listener = new ExcelListener();
             ExcelUtil.readBySax(in, new Sheet(1, 1), listener);
         } catch (Exception e) {
@@ -101,9 +111,7 @@ public class ExcelTest {
     }
 
     public void print(List<Object> datas) {
-        int i = 0;
         for (Object ob : datas) {
-            System.out.println(i++);
             System.out.println(ob);
         }
     }

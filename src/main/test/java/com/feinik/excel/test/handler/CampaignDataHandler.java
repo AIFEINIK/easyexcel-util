@@ -1,7 +1,7 @@
 package com.feinik.excel.test.handler;
 
 import com.feinik.excel.handler.ExcelDataHandler;
-import com.feinik.excel.test.model.UserData;
+import com.feinik.excel.test.model.CampaignModel;
 import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.FillPatternType;
 import org.apache.poi.ss.usermodel.Font;
@@ -12,7 +12,7 @@ import org.apache.poi.ss.usermodel.Sheet;
  *
  * @author Feinik
  */
-public class UserDataHandler implements ExcelDataHandler {
+public class CampaignDataHandler implements ExcelDataHandler {
 
     @Override
     public void headCellStyle(CellStyle style, int cellIndex) {
@@ -33,10 +33,10 @@ public class UserDataHandler implements ExcelDataHandler {
 
     @Override
     public void contentFont(Font font, int cellIndex, Object data) {
-        UserData user = (UserData) data;
+        CampaignModel campaign = (CampaignModel) data;
         switch (cellIndex) {
-            case 2: //这里的值为Model对象中ExcelProperty注解里的index值
-                if (Integer.valueOf(user.getAge()) > 60) { //表示将年龄大于60的第二列也就是工资列的cell字体标记为红色
+            case 4: //这里的值为Model对象中ExcelProperty注解里的index值
+                if (Long.valueOf(campaign.getClicks()) > 100) { //表示将点击次数大于100的第4列也就是点击次数列的cell字体标记为红色
                     font.setColor(IndexedColors.RED.getIndex());
                     font.setFontName("宋体");
                     font.setItalic(true);
@@ -48,5 +48,7 @@ public class UserDataHandler implements ExcelDataHandler {
     }
 
     @Override
-    public void sheet(int sheetIndex, Sheet sheet) {}
+    public void sheet(int sheetIndex, Sheet sheet) {
+        System.out.println("sheetIndex = [" + sheetIndex + "]");
+    }
 }
