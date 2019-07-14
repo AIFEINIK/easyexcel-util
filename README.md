@@ -1,12 +1,12 @@
 # easyexcel-util
-本项目基于阿里easyexcel，使其更容易处理每个cell的字体与样式  
+本项目基于阿里easyexcel，在此基础上做了更进一步的封装，使其写入数据更加便捷，通过抽离出的ExcelDataHandler接口更容易处理每个cell的字体与样式  
 
 # Maven包引入
 ```
 <dependency>
     <groupId>com.github.aifeinik</groupId>
     <artifactId>easyexcel-util</artifactId>
-    <version>0.1.1</version>
+    <version>1.0</version>
 </dependency>
 
 ```
@@ -181,6 +181,89 @@ public class ExcelTest {
     }
 ```
 ![s3](https://github.com/AIFEINIK/img-resource/blob/master/easyexcel-util/0014.png)
+
+## 大数据量分批写入单个sheet
+```
+    /**
+     * 单个sheet
+     * 测试分批写入excel文件，可通过该方式写入超大数据，而不至于一次写入大数据量导致OOM问题
+     */
+    @Test
+    public void writeOneSheetWithWrapWriter() {
+        ExcelWrapWriter wrapWriter = null;
+        try {
+            OutputStream os = new FileOutputStream("G:/tmp/campaign.xlsx");
+            //默认样式
+            //wrapWriter = new ExcelWrapWriter(os, ExcelTypeEnum.XLSX);
+
+            //自定义excel样式
+            wrapWriter = new ExcelWrapWriter(os, ExcelTypeEnum.XLSX, new CampaignDataHandler());
+
+            List<CampaignModel> models1 = Lists.newArrayList(m1, m2);
+            List<CampaignModel> models2 = Lists.newArrayList(m3, m4);
+
+            //第一批次写入设置包含head头
+            ExcelUtil.writeExcelWithOneSheet(wrapWriter, "sheet1", true, models1);
+
+            //第二批次开始不需要在写入head头
+            ExcelUtil.writeExcelWithOneSheet(wrapWriter, "sheet1", false, models2);
+        } catch (Exception e) {
+            e.printStackTrace();
+
+        } finally {
+            //close IO
+            if (wrapWriter != null) {
+                wrapWriter.finish();
+            }
+        }
+    }
+```
+
+## 大数据量分批写入多个sheet
+```
+    /**
+     * 多个sheet
+     * 测试分批写入excel文件，可通过该方式写入超大数据，而不至于一次写入大数据量导致OOM问题
+     */
+    @Test
+    public void writeMultiSheetWithWrapWriter() {
+        ExcelWrapWriter wrapWriter = null;
+        try {
+            //os流不需要单独close，可通过wrapWriter.finish()来关闭
+            OutputStream os = new FileOutputStream("G:/tmp/campaign.xlsx");
+            //默认样式
+            //wrapWriter = new ExcelWrapWriter(os, ExcelTypeEnum.XLSX);
+
+            //自定义excel样式
+            wrapWriter = new ExcelWrapWriter(os, ExcelTypeEnum.XLSX, new CampaignDataHandler());
+            Map<String, List<? extends BaseRowModel>> batch1 = new HashMap<>();
+            List<CampaignModel> models1 = Lists.newArrayList(m1, m2);
+            List<CampaignModel> models2 = Lists.newArrayList(m3, m4);
+            batch1.put("sheet1", models1);
+            batch1.put("sheet2", models2);
+
+            Map<String, List<? extends BaseRowModel>> batch2 = new HashMap<>();
+            List<CampaignModel> models3 = Lists.newArrayList(m4, m2);
+            List<CampaignModel> models4 = Lists.newArrayList(m3, m1);
+            batch2.put("sheet1", models3);
+            batch2.put("sheet2", models4);
+
+            //第一批次写入设置包含head头
+            ExcelUtil.writeExcelWithMultiSheet(wrapWriter, true, batch1);
+
+            //第二批次开始不需要在写入head头
+            ExcelUtil.writeExcelWithMultiSheet(wrapWriter, false, batch2);
+        } catch (Exception e) {
+            e.printStackTrace();
+
+        } finally {
+            //close IO
+            if (wrapWriter != null) {
+                wrapWriter.finish();
+            }
+        }
+    }
+```
 
 # 测试代码
 [ExcelTest](https://github.com/AIFEINIK/easyexcel-util/blob/master/src/main/test/java/com/feinik/excel/test/ExcelTest.java)
