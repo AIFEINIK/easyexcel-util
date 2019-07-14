@@ -2,6 +2,8 @@ package com.feinik.excel.test;
 
 import com.alibaba.excel.metadata.BaseRowModel;
 import com.alibaba.excel.metadata.Sheet;
+import com.alibaba.excel.support.ExcelTypeEnum;
+import com.feinik.excel.ExcelWrapWriter;
 import com.feinik.excel.test.handler.CampaignDataHandler;
 import com.feinik.excel.test.listener.ExcelListener;
 import com.feinik.excel.test.model.CampaignModel;
@@ -11,14 +13,15 @@ import com.google.common.collect.Lists;
 import org.junit.Test;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 /**
- *
  * @author Feinik
  */
 public class ExcelTest {
@@ -33,29 +36,29 @@ public class ExcelTest {
 
     /**
      * 小数据量一次性写入单个sheet，使用默认样式
+     *
      * @throws Exception
      */
     @Test
     public void writeExcelWithOneSheet() throws Exception {
         ExcelUtil.writeExcelWithOneSheet(new File("G:/tmp/campaign.xlsx"),
-                "campaign",
-                data1);
+                "campaign",true, data1);
     }
 
     /**
      * 小数据量一次性写入单个sheet，使用自定义样式
+     *
      * @throws Exception
      */
     @Test
     public void writeExcelWithOneSheet2() throws Exception {
         ExcelUtil.writeExcelWithOneSheet(new File("G:/tmp/campaign.xlsx"),
-                "campaign",
-                data1,
-                new CampaignDataHandler());
+                "campaign",true, data1, new CampaignDataHandler());
     }
 
     /**
      * 小数据量一次性写入多个sheet，默认样式
+     *
      * @throws Exception
      */
     @Test
@@ -64,11 +67,12 @@ public class ExcelTest {
         map.put("sheet1", data1);
         map.put("sheet2", data2);
 
-        ExcelUtil.writeExcelWithMultiSheet(new File("G:/tmp/campaign.xlsx"), map);
+        ExcelUtil.writeExcelWithMultiSheet(new File("G:/tmp/campaign.xlsx"), map, true);
     }
 
     /**
      * 小数据量一次性写入多个sheet，使用自定义样式
+     *
      * @throws Exception
      */
     @Test
@@ -77,7 +81,85 @@ public class ExcelTest {
         map.put("sheet1", data1);
         map.put("sheet2", data2);
 
-        ExcelUtil.writeExcelWithMultiSheet(new File("G:/tmp/campaign.xlsx"), map, new CampaignDataHandler());
+        ExcelUtil.writeExcelWithMultiSheet(new File("G:/tmp/campaign.xlsx"),
+                map,true, new CampaignDataHandler());
+    }
+
+    /**
+     * 单个sheet
+     * 测试分批写入excel文件，可通过该方式写入超大数据，而不至于一次写入大数据量导致OOM问题
+     */
+    @Test
+    public void writeOneSheetWithWrapWriter() {
+        ExcelWrapWriter wrapWriter = null;
+        try {
+            OutputStream os = new FileOutputStream("G:/tmp/campaign.xlsx");
+            //默认样式
+            //wrapWriter = new ExcelWrapWriter(os, ExcelTypeEnum.XLSX);
+
+            //自定义excel样式
+            wrapWriter = new ExcelWrapWriter(os, ExcelTypeEnum.XLSX, new CampaignDataHandler());
+
+            List<CampaignModel> models1 = Lists.newArrayList(m1, m2);
+            List<CampaignModel> models2 = Lists.newArrayList(m3, m4);
+
+            //第一批次写入设置包含head头
+            ExcelUtil.writeExcelWithOneSheet(wrapWriter, "sheet1", true, models1);
+
+            //第二批次开始不需要在写入head头
+            ExcelUtil.writeExcelWithOneSheet(wrapWriter, "sheet1", false, models2);
+        } catch (Exception e) {
+            e.printStackTrace();
+
+        } finally {
+            //close IO
+            if (wrapWriter != null) {
+                wrapWriter.finish();
+            }
+        }
+    }
+
+    /**
+     * 多个sheet
+     * 测试分批写入excel文件，可通过该方式写入超大数据，而不至于一次写入大数据量导致OOM问题
+     */
+    @Test
+    public void writeMultiSheetWithWrapWriter() {
+        ExcelWrapWriter wrapWriter = null;
+        try {
+            //os流不需要单独close，可通过wrapWriter.finish()来关闭
+            OutputStream os = new FileOutputStream("G:/tmp/campaign.xlsx");
+            //默认样式
+            //wrapWriter = new ExcelWrapWriter(os, ExcelTypeEnum.XLSX);
+
+            //自定义excel样式
+            wrapWriter = new ExcelWrapWriter(os, ExcelTypeEnum.XLSX, new CampaignDataHandler());
+            Map<String, List<? extends BaseRowModel>> batch1 = new HashMap<>();
+            List<CampaignModel> models1 = Lists.newArrayList(m1, m2);
+            List<CampaignModel> models2 = Lists.newArrayList(m3, m4);
+            batch1.put("sheet1", models1);
+            batch1.put("sheet2", models2);
+
+            Map<String, List<? extends BaseRowModel>> batch2 = new HashMap<>();
+            List<CampaignModel> models3 = Lists.newArrayList(m4, m2);
+            List<CampaignModel> models4 = Lists.newArrayList(m3, m1);
+            batch2.put("sheet1", models3);
+            batch2.put("sheet2", models4);
+
+            //第一批次写入设置包含head头
+            ExcelUtil.writeExcelWithMultiSheet(wrapWriter, true, batch1);
+
+            //第二批次开始不需要在写入head头
+            ExcelUtil.writeExcelWithMultiSheet(wrapWriter, false, batch2);
+        } catch (Exception e) {
+            e.printStackTrace();
+
+        } finally {
+            //close IO
+            if (wrapWriter != null) {
+                wrapWriter.finish();
+            }
+        }
     }
 
     @Test

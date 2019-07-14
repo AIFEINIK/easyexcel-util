@@ -13,6 +13,7 @@ import org.apache.poi.ss.usermodel.Workbook;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -26,7 +27,8 @@ public class StyleHandler implements WriteHandler {
     private Map<String, List<? extends BaseRowModel>> dataMap;
     private List<? extends BaseRowModel> data;
     private ExcelDataHandler handler;
-    private int rowIndex;
+    private int currentRowIndex;
+    private int dataIndex;
 
     public void setHandler(ExcelDataHandler handler) {
         this.handler = handler;
@@ -36,15 +38,24 @@ public class StyleHandler implements WriteHandler {
         this.dataMap = dataMap;
     }
 
+    public StyleHandler() {
+    }
+
+    public void setDataMap(Map<String, List<? extends BaseRowModel>> dataMap) {
+        this.dataMap = dataMap;
+    }
+
     @Override
     public void sheet(int sheetIndex, Sheet sheet) {
-        data = dataMap.get(sheet.getSheetName());
-        handler.sheet(sheetIndex, sheet);
+        this.dataIndex = 0;
+        this.data = dataMap.get(sheet.getSheetName());
+        this.handler.sheet(sheetIndex, sheet);
     }
 
     @Override
     public void row(int rowIndex, Row row) {
-        this.rowIndex = rowIndex;
+        this.currentRowIndex = rowIndex;
+        this.dataIndex++;
     }
 
     @Override
@@ -54,12 +65,12 @@ public class StyleHandler implements WriteHandler {
         final Font font = workbook.createFont();
         try {
             if (handler != null) {
-                if (rowIndex == 0) {
+                if (currentRowIndex == 0) {
                     handler.headFont(font, cellIndex);
                     handler.headCellStyle(style, cellIndex);
 
                 } else {
-                    handler.contentFont(font, cellIndex, data.get(rowIndex-1));
+                    handler.contentFont(font, cellIndex, data.get(dataIndex - 1));
                     handler.contentCellStyle(style, cellIndex);
                 }
             }

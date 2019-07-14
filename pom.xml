@@ -15,7 +15,7 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <jdk.version>1.8</jdk.version>
-        <project.release.version>0.1.1</project.release.version>
+        <project.release.version>1.0</project.release.version>
     </properties>
 
     <developers>
@@ -45,7 +45,7 @@
         <profile>
             <id>release</id>
             <properties>
-                <project.release.version>0.1.1</project.release.version>
+                <project.release.version>1.0</project.release.version>
             </properties>
         </profile>
     </profiles>
