@@ -1,8 +1,8 @@
 package com.feinik.excel.handler;
 
 import org.apache.poi.ss.usermodel.CellStyle;
-import org.apache.poi.ss.usermodel.Font;
 import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
 
 /**
  * Excel数据处理
@@ -13,31 +13,18 @@ public interface ExcelDataHandler {
 
     /**
      * Excel head头部字体设置
-     * @param font
      * @param cellIndex 列索引
+     * @return CellStyle
      */
-    void headFont(Font font, int cellIndex);
-
-    /**
-     * Excel head头部样式设置
-     * @param style
-     * @param cellIndex 列索引
-     */
-    void headCellStyle(CellStyle style, int cellIndex);
+    CellStyle headFont(int cellIndex);
 
     /**
      * Excel 除head外的内容字体设置
-     * @param font
      * @param cellIndex 列索引
+     * @param data 行数据对象
+     * @return CellStyle
      */
-    void contentFont(Font font, int cellIndex, Object data);
-
-    /**
-     * Excel 除head外的内容样式设置
-     * @param style
-     * @param cellIndex 列索引
-     */
-    void contentCellStyle(CellStyle style, int cellIndex);
+    CellStyle contentFont(int cellIndex, Object data);
 
     /**
      * Excel sheet
@@ -45,4 +32,10 @@ public interface ExcelDataHandler {
      * @param sheet
      */
     void sheet(int sheetIndex, Sheet sheet);
+
+    /**
+     * workbook context 初始化回调一次
+     * @param workbook
+     */
+    void workbookContext(Workbook workbook);
 }
