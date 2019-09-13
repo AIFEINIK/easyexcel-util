@@ -57,8 +57,6 @@ public class CampaignDataHandler implements ExcelDataHandler {
                 if (Long.valueOf(campaign.getClicks()) > 100) { //表示将点击次数大于100的第4列也就是点击次数列的cell字体标记为红色
                     return stylePool.get(ObjType.INDEX4_STYLE.name());
 
-                } else {
-                    return stylePool.get(ObjType.DEFAULT_STYLE.name());
                 }
 
             default:
