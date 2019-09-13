@@ -9,7 +9,7 @@
 <dependency>
     <groupId>com.github.aifeinik</groupId>
     <artifactId>easyexcel-util</artifactId>
-    <version>1.0</version>
+    <version>1.1</version>
 </dependency>
 
 ```
@@ -45,35 +45,27 @@ public class CampaignModel extends BaseRowModel implements Serializable {
 
 # 通过实现 ExcelDataHandler 接口来设置具体每个cell的样式与字体，如：
 ```
+/**
+ * Excel数据处理
+ *
+ * @author Feinik
+ */
 public interface ExcelDataHandler {
 
     /**
      * Excel head头部字体设置
-     * @param font
      * @param cellIndex 列索引
+     * @return CellStyle
      */
-    void headFont(Font font, int cellIndex);
-
-    /**
-     * Excel head头部样式设置
-     * @param style
-     * @param cellIndex 列索引
-     */
-    void headCellStyle(CellStyle style, int cellIndex);
+    CellStyle headFont(int cellIndex);
 
     /**
      * Excel 除head外的内容字体设置
-     * @param font
      * @param cellIndex 列索引
+     * @param data 行数据对象
+     * @return CellStyle
      */
-    void contentFont(Font font, int cellIndex, Object data);
-
-    /**
-     * Excel 除head外的内容样式设置
-     * @param style
-     * @param cellIndex 列索引
-     */
-    void contentCellStyle(CellStyle style, int cellIndex);
+    CellStyle contentFont(int cellIndex, Object data);
 
     /**
      * Excel sheet
@@ -81,39 +73,57 @@ public interface ExcelDataHandler {
      * @param sheet
      */
     void sheet(int sheetIndex, Sheet sheet);
+
+    /**
+     * workbook context 初始化回调一次
+     * @param workbook
+     */
+    void workbookContext(Workbook workbook);
 }
 
 public class CampaignDataHandler implements ExcelDataHandler {
 
-    @Override
-    public void headCellStyle(CellStyle style, int cellIndex) {
-        style.setFillPattern(FillPatternType.SOLID_FOREGROUND);
-        style.setFillForegroundColor(IndexedColors.LIGHT_BLUE.getIndex());
+    //通过对象池的方式来解决大数据量下重复创建CellStyle而导致的异常
+    //相同设置属性的CellStyle对象达到可复用
+    private Map<String, CellStyle> stylePool = new HashMap<>();
+
+    private enum ObjType {
+        HEAD_STYLE,
+        INDEX4_STYLE,
+        DEFAULT_STYLE
     }
 
     @Override
-    public void headFont(Font font, int cellIndex) {
-        font.setColor(IndexedColors.WHITE.getIndex());
+    public void workbookContext(Workbook workbook) {
+        putStylePool(workbook);
+    }
+
+    //初始化对象池
+    private void putStylePool(Workbook workbook) {
+        stylePool.put(ObjType.HEAD_STYLE.name(), setAndGetHeadStyle(workbook));
+        stylePool.put(ObjType.INDEX4_STYLE.name(), setAndGetIndex4Style(workbook));
+        stylePool.put(ObjType.DEFAULT_STYLE.name(), setAndGetDefaultStyle(workbook));
     }
 
     @Override
-    public void contentCellStyle(CellStyle style, int cellIndex) {
-        style.setFillForegroundColor(IndexedColors.YELLOW.getIndex());
-        style.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+    public CellStyle headFont(int cellIndex) {
+        //从对象池直接获取
+        return stylePool.get(ObjType.HEAD_STYLE.name());
     }
 
     @Override
-    public void contentFont(Font font, int cellIndex, Object data) {
+    public CellStyle contentFont(int cellIndex, Object data) {
         CampaignModel campaign = (CampaignModel) data;
+
         switch (cellIndex) {
             case 4: //这里的值为Model对象中ExcelProperty注解里的index值
                 if (Long.valueOf(campaign.getClicks()) > 100) { //表示将点击次数大于100的第4列也就是点击次数列的cell字体标记为红色
-                    font.setColor(IndexedColors.RED.getIndex());
-                    font.setFontName("宋体");
-                    font.setItalic(true);
-                    font.setBold(true);
+                    return stylePool.get(ObjType.INDEX4_STYLE.name());
+
                 }
-                break;
+
+            default:
+                return stylePool.get(ObjType.DEFAULT_STYLE.name());
 
         }
     }
@@ -121,6 +131,47 @@ public class CampaignDataHandler implements ExcelDataHandler {
     @Override
     public void sheet(int sheetIndex, Sheet sheet) {
         System.out.println("sheetIndex = [" + sheetIndex + "]");
+    }
+
+    public CellStyle getCellStyle(Workbook workbook) {
+        CellStyle cellStyle = workbook.createCellStyle();
+        cellStyle.setAlignment(HorizontalAlignment.CENTER);
+        cellStyle.setVerticalAlignment(VerticalAlignment.CENTER);
+        return cellStyle;
+    }
+
+    public CellStyle setAndGetHeadStyle(Workbook book) {
+        final Font font = book.createFont();
+        final CellStyle style = getCellStyle(book);
+
+        font.setColor(IndexedColors.WHITE.getIndex());
+        font.setBold(true);
+        font.setFontHeightInPoints((short) 10);
+        font.setFontName("微软雅黑");
+
+        style.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+        style.setFillForegroundColor(IndexedColors.ROYAL_BLUE.getIndex());
+        style.setFont(font);
+        return style;
+    }
+
+    public CellStyle setAndGetDefaultStyle(Workbook book) {
+        final Font font = book.createFont();
+        final CellStyle style = getCellStyle(book);
+        font.setFontName("微软雅黑");
+        font.setFontHeightInPoints((short) 10);
+        style.setFont(font);
+        return style;
+    }
+
+    public CellStyle setAndGetIndex4Style(Workbook book) {
+        final Font font = book.createFont();
+        final CellStyle style = getCellStyle(book);
+        font.setColor(IndexedColors.RED.getIndex());
+        font.setFontName("微软雅黑");
+        font.setFontHeightInPoints((short) 10);
+        style.setFont(font);
+        return style;
     }
 }
 ```
